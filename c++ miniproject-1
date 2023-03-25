@@ -1,0 +1,458 @@
+#include <iostream>
+#include <string.h>
+#include <fstream>
+#include <iomanip>
+using namespace std;
+
+void addrecord();
+void showrecord();
+void searchbyrol();
+void searchbyname();
+void modifydata();
+void deletedata();
+void restoredata();
+class Student
+{
+private:
+    int rollno;
+    char name[50];
+    char gender[15];
+    int age;
+    int std;
+
+public:
+    char *get_name()
+    {
+        return name;
+    }
+    void get_Data()
+    {
+        cout << "Enter Name : ";
+
+        cin >> name;
+
+        cout << "Enter Roll NO : ";
+        cin >> rollno;
+        cout << "Enter Gender  : ";
+        cin >> gender;
+        cout << "Enter Age     : ";
+        cin >> age;
+        cout << "Enter Year    : ";
+        cin >> std;
+    }
+
+    void modify_Data()
+    {
+        cout << "===========================================================================\n";
+        cout << "Roll NO selected : " << rollno;
+        cout << "\nEnter new data:\n";
+        cout << "Enter Name : ";
+
+        cin >> name;
+
+        cout << "Enter Gender  : ";
+        cin >> gender;
+        cout << "Enter Age     : ";
+        cin >> age;
+        cout << "Enter Year    : ";
+        cin >> std;
+    }
+    void list_data()
+    { // cout<<"--------------------------------------------------------------DATABASE ENTRIES--------------------------------"<<endl;
+
+        cout << setw(10)
+             << rollno;
+        cout << setw(10) << name;
+        cout << setw(10)
+             << gender;
+        cout << setw(10)
+             << age;
+        cout << setw(10)
+             << std;
+        cout << endl;
+    }
+    int get_roll()
+    {
+        return rollno;
+    }
+    void show_data()
+    {
+        cout << "--------------------------------------------------------------DATABASE ENTRIES--------------------------------" << endl;
+        cout << "Name     :" << name << endl;
+        cout << "Roll NO  :"
+             << " " << rollno << endl;
+        cout << "Gender   :"
+             << " " << gender << endl;
+        cout << "Age      :"
+             << " " << age << endl;
+        cout << "Year     :"
+             << " " << std << endl;
+    }
+} s;
+void menu()
+{
+    cout << "Student DataBase Managemet System\n";
+    cout << "==================================\n";
+    cout << "0. For exit\n";
+    cout << "1. Register Student\n";
+    cout << "2. show Data\n";
+    cout << "3. Search by ROll Number\n";
+    cout << "4. Search by Name\n";
+
+    cout << "5. Delete Data\n";
+    cout << "6. showDeleted Data\n";
+    cout << "7. Restore Deleted Data\n";
+    cout << "8. Data modification\n";
+    cout << "Enter Your Choice\n";
+}
+void heading()
+{
+    cout.setf(ios::left);
+    cout << setw(10) << "Roll NO.";
+    cout << setw(10) << "Name";
+    cout << setw(10) << "Gender";
+    cout << setw(10) << "Age";
+    cout << setw(10) << "Year";
+    cout << endl;
+}
+void addrecord()
+{
+    ofstream fout;
+    fout.open("StudData.bin", ios::out | ios::app | ios::binary);
+    s.get_Data();
+    fout.write((char *)&s, sizeof(s));
+    fout.close();
+}
+void showrecord()
+{
+    ifstream fin;
+    fin.open("StudData.bin", ios::in | ios::binary);
+    // s.show_data();
+    heading();
+    while (fin.read((char *)&s, sizeof(s)))
+    {
+        s.list_data();
+    };
+    fin.close();
+}
+void searchbyrol()
+{
+    int rn, flag = 0;
+    ifstream fin;
+    cout << "Enter Roll No to search : ";
+    cin >> rn;
+    fin.open("StudData.bin", ios::in | ios::binary);
+    // s.show_data();
+    // heading();
+    while (fin.read((char *)&s, sizeof(s)))
+    {
+        if (rn == s.get_roll())
+        {
+            s.show_data();
+            flag++;
+        }
+    };
+    fin.close();
+    if (flag == 0)
+        cout << "no data found in file.........../";
+}
+void searchbyname()
+{
+    int flag = 0;
+    char nm[50];
+    cout << "Enter Name to search : ";
+    cin >> nm;
+    ifstream fin;
+    fin.open("StudData.bin", ios::in | ios::binary);
+
+    // s.show_data();
+    //  heading();
+    while (fin.read((char *)&s, sizeof(s)))
+    {
+        if (strcmpi(nm, s.get_name()) == 0)
+        {
+            s.show_data();
+            flag++;
+        }
+    };
+    fin.close();
+    if (flag == 0)
+        cout << "no data found in file.........../";
+}
+void deletedata()
+{
+
+    cout << "Enter Roll no to delete";
+    int rn, flag = 0;
+    ifstream fin;
+    ofstream fout1("temp.bin");
+    ofstream fout2("trash.bin", ios::app);
+    cin >> rn;
+    fin.open("StudData.bin", ios::in | ios::binary);
+    // s.show_data();
+    // heading();
+    while (fin.read((char *)&s, sizeof(s)))
+    {
+        if (rn == s.get_roll())
+        {
+            cout << "Data Found\n";
+            s.show_data();
+            flag++;
+            fout2.write((char *)&s, sizeof(s));
+        }
+        else
+        {
+            fout1.write((char *)&s, sizeof(s));
+        }
+    };
+    fin.close();
+    fout2.close();
+    fout1.close();
+    if (flag == 0)
+        cout << "no data found in file.........../";
+    remove("StudData.bin");
+    rename("temp.bin", "StudData.bin");
+}
+void showdeletedrecord()
+{
+    ifstream fin;
+    fin.open("trash.bin", ios::in | ios::binary);
+    // s.show_data();
+    heading();
+    while (fin.read((char *)&s, sizeof(s)))
+    {
+        s.list_data();
+    };
+    fin.close();
+}
+void restoredata()
+{
+
+    cout << "Enter Roll no to Restore";
+    int rn, flag = 0;
+    ifstream fin;
+    ofstream fout1("temp.bi");                // temp file
+    ofstream fout2("StudData.bin", ios::app); // jismay likhna hai
+    cin >> rn;
+    fin.open("trash.bin", ios::app | ios::binary);
+    // s.show_data();
+    // heading();
+    while (fin.read((char *)&s, sizeof(s)))
+    {
+        if (rn == s.get_roll())
+        {
+            cout << "Data Found\n";
+            s.show_data();
+            flag++;
+            fout2.write((char *)&s, sizeof(s));
+        }
+        else
+        {
+            fout1.write((char *)&s, sizeof(s));
+        }
+    };
+    fin.close();
+    fout2.close();
+    fout1.close();
+    if (flag == 0)
+        cout << "no data found in file.........../";
+    remove("trash.bin");
+    rename("temp.bin", "trash.bin");
+}
+void modifydata()
+{
+    int rn, flag = 0, pos;
+    fstream fio; //fio stands for file input output
+    cout << "Enter Roll No to search : ";
+    cin >> rn;
+    fio.open("StudData.bin", ios::in | ios::out | ios::binary);
+    // s.show_data();
+    // heading();
+    while (fio.read((char *)&s, sizeof(s)))
+    {
+        if (rn == s.get_roll())
+        {
+            pos = fio.tellg();// store the position where the data is found in my file
+            s.show_data();
+            flag++;
+            cout << "Enter New record\n";
+
+            fio.seekg(pos - sizeof(s)); // move the cursor to the starting point of required data 
+            s.get_Data();
+            fio.write((char *)&s, sizeof(s));
+        }
+    };
+    fio.close();
+    if (flag == 0)
+        cout << "no data found in file.........../";
+}
+int main()
+{
+    int n = 0, ch, rn, flag = 0, pos;
+    Student s[10];
+    do
+    {
+        system("cls");
+        menu();
+        cin >> ch;
+        switch (ch)
+        {
+        case 1:
+            addrecord();
+            // s[n].get_Data();
+            // n++;
+            // cout << "record saved\n";
+            break;
+        case 2:
+            showrecord();
+            // if (n > 0)
+            // {
+            //     heading();
+            //     for (int i = 0; i < n; i++)
+            //     {
+            //         s[i].list_data();
+            //     }
+            // }
+            // else
+            // {
+            //     cout << "NO RECORD TO DISPLAY\n";
+            // }
+            break;
+        case 3:
+            searchbyrol();
+            // if (n > 0)
+            // {
+            //     cout << "Enter Roll Number:";
+            //     cin >> rn;
+            //     for (int i = 0; i < n; i++)
+            //     {
+            //         if (rn == s[i].get_roll())
+            //         {
+            //             cout << "Data Found\n";
+            //             flag++;
+            //             s[i].show_data();
+            //         }
+            //     }
+            // }
+            // else
+            // {
+            //     cout << "No Data to Display\n";
+            // }
+            // if (flag == 0)
+            // {
+            //     cout << "NO Data Found\n";
+            // }
+
+            break;
+        case 4:
+            searchbyname();
+            // if (n > 0)
+            // {
+            //     char nam[50];
+            //     cout << "Enter the Name to be Searched\n";
+            //     cin >> nam;
+            //     for (int i = 0; i < n; i++)
+            //     {
+
+            //         if (strcmpi(nam, s[i].get_name()) == 0)
+            //         {
+            //             s[i].show_data();
+            //             flag++;
+            //         }
+            //         else
+            //         {
+            //             cout << "No Data Found";
+            //             break;
+            //         }
+            //     }
+            // }
+            // else
+            // {
+            //     cout << "No Data to Display\n";
+            // }
+            // if (flag == 0)
+            // {
+            //     cout << "NO Data Found \nExit\n";
+            // }
+
+            break;
+        case 5:
+            deletedata();
+            // if (n > 0)
+            // {
+            //     cout << "Enter Roll Number to be deleted: ";
+            //     cin >> rn;
+            //     for (int i = 0; i < n; i++)
+            //     {
+            //         if (rn == s[i].get_roll())
+            //         {
+            //             cout << "Following data will be deleted\n";
+            //             flag++;
+            //             s[i].show_data();
+            //             flag++;
+            //             pos = i;
+            //             break;
+            //         }
+            //     }
+            //     for (int i = pos; i < n - 1; i++)
+            //     {
+            //         s[i] = s[i + 1];
+            //     }
+            //     n--;
+            // }
+            // else
+            // {
+            //     cout << "No Data to Display\n";
+            // }
+            // if (flag == 0)
+            // {
+            //     cout << "NO Data Found\n";
+            // }
+
+            break;
+        case 6:
+
+            showdeletedrecord();
+            break;
+        case 7:
+
+            restoredata();
+            break;
+        case 8:
+            modifydata();
+
+            // cout << "Data modification selected\n";
+            // if (n > 0)
+            // {
+            //     cout << "Enter Roll Number to modify: ";
+            //     cin >> rn;
+            //     int pos;
+            //     for (int i = 0; i < n; i++)
+            //     {
+            //         if (rn == s[i].get_roll())
+            //         {
+            //             cout << "Data Found\n";
+            //             cout << "Data is as follows \n";
+            //             s[i].show_data();
+
+            //             s[i].modify_Data();
+            //             cout << "Data modification accepted\n";
+
+            //             flag++;
+            //             // pos=i;
+            //         }
+            //     }
+            // }
+            // else
+            // {
+            //     cout << "No Data to Display\n";
+            // }
+            // if (flag == 0)
+            // {
+            //     cout << "NO Data Found \nExit\n";
+            // }
+            break;
+        }
+        system("pause");
+    } while (ch);
+}
